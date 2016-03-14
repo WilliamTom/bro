@@ -131,7 +131,7 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 	else
 		{
 		loop_over_list(*vl, i)
-			Unref((*vl)[i]);
+		Unref((*vl)[i]);
 		}
 	}
 
