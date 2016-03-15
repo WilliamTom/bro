@@ -76,6 +76,8 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 	if ( new_event )
 		NewEvent(vl);
 
+	bool send_local = true;
+  // we are allowed to send to remote
 	if ( ! no_remote )
 		{
 		loop_over_list(receivers, i)
@@ -119,13 +121,14 @@ void EventHandler::Call(val_list* vl, bool no_remote)
 						broker_mgr->Event(it->first, move(msg), it->second);
 					else
 						broker_mgr->Event(it->first, msg, it->second);
+					send_local = false;
 					}
 				}
 			}
 #endif
 		}
 
-	if ( local )
+	if ( local && (no_remote || (!no_remote && send_local)) )
 		// No try/catch here; we pass exceptions upstream.
 		Unref(local->Call(vl));
 	else
