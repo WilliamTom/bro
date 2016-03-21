@@ -4,7 +4,7 @@
 # @TEST-EXEC: btest-bg-run recv "bro -b ../recv.bro broker_port=$BROKER_PORT >recv.out"
 # @TEST-EXEC: btest-bg-run send "bro -b ../send.bro broker_port=$BROKER_PORT >send.out"
 
-# @TEST-EXEC: btest-bg-wait 5
+# @TEST-EXEC: btest-bg-wait -k 5
 # @TEST-EXEC: btest-diff recv/recv.out
 # @TEST-EXEC: btest-diff send/send.out
 
@@ -20,8 +20,8 @@ event bro_init()
 	{
 	Broker::enable();
 	Broker::subscribe_to_events("bro/event/");
-	Broker::publish_topic("bro/event/my_topic");
-	Broker::auto_event("bro/event/my_topic", auto_event_handler);
+	Broker::publish_topic("bro/event/");
+	Broker::auto_event("bro/event/", auto_event_handler);
 	Broker::listen(broker_port, "127.0.0.1");
 	print "is_remote should be F, and is", is_remote_event();
 	}
@@ -38,8 +38,13 @@ event event_handler(msg: string, n: count)
 		{
 		event auto_event_handler(msg, n);
 		local args = Broker::event_args(event_handler, "pong", n);
-		Broker::send_event("bro/event/my_topic", args);
+		Broker::send_event("bro/event/", args);
 		}
+	}
+
+event auto_event_handler(msg: string, n: count)
+	{
+	print "got auto event msg", msg, n;
 	}
 
 @TEST-END-FILE
@@ -56,7 +61,8 @@ event bro_init()
 	{
 	Broker::enable();
 	Broker::subscribe_to_events("bro/event/");
-	Broker::publish_topic("bro/event/hi");
+	Broker::publish_topic("bro/event/");
+	Broker::auto_event("bro/event/", auto_event_handler);
 	Broker::connect("127.0.0.1", broker_port, 1secs);
 	}
 
@@ -68,7 +74,7 @@ event Broker::outgoing_connection_established(peer_address: string,
 	{
 	print "Broker::outgoing_connection_established", peer_address, peer_port;
 	local args = Broker::event_args(event_handler, "ping", event_count);
-	Broker::send_event("bro/event/hi", args);
+	Broker::send_event("bro/event/", args);
 	++event_count;
 	}
 
@@ -83,7 +89,7 @@ event event_handler(msg: string, n: count)
 	{
 	print "got event msg", msg, n;
 	local args = Broker::event_args(event_handler, "ping", event_count);
-	Broker::send_event("bro/event/hi", args);
+	Broker::send_event("bro/event/", args);
 	++event_count;
 	}
 
